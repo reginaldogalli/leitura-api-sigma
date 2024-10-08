@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leitura API Sigma</title>
+    <script>
+        let baseUrl = null;
+        let user = null;
+        let password = null;
+        let token = null;
+
+        function getData(){
+            baseUrl = document.getElementById("url").value;
+            user = document.getElementById("user").value;
+            password = document.getElementById("password").value;
+            console.log(user);
+            auth();
+        }
+        
+        function auth(){
+            fetch(`${baseUrl}/api/v1/Autenticacao`, 
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', 
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ usuario: user, chaveAcesso: password })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro na requisição: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+                // Aqui você pode armazenar o token, se necessário
+                token = data.token; // Por exemplo, se a API retornar um token
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+            });
+        }
+    </script>
+    <style>
+        body {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #login-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            max-width: 400px;
+            border: 1px solid rgb(116, 116, 116);
+            border-radius: 10px;
+        }
+        .input-login {
+            width: 200px;
+            height: 20px;
+            margin: 10px;
+            border-radius: 5px;
+        }
+
+        #authenticate {
+            color: white;
+            background-color: green;
+            height: 30px;
+            margin: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="login-box">
+        <p>Dados de Login</p>
+        <input id="url" class="input-login" type="text" placeholder="URL da API">
+        <input id="user" class="input-login" type="text" placeholder="Usuário">
+        <input id="password" class="input-login" type="password" placeholder="Senha">
+        <button id="authenticate" onclick="getData()">Autenticar</button>
+    </div>
+</body>
+</html>

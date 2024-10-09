@@ -15,34 +15,27 @@
             user = document.getElementById("user").value;
             password = document.getElementById("password").value;
             console.log(user);
-            auth();
+            const myHeaders = new Headers();
+myHeaders.append("Content-Type", "application/json");
+
+const raw = JSON.stringify({
+  "usuario": "reginaldo.santos",
+  "chaveAcesso": "tR3e2647"
+});
+
+const requestOptions = {
+  method: "POST",
+  headers: myHeaders,
+  body: raw,
+};
+
+fetch("https://sigmaecm.com/api/v1/Autenticacao", requestOptions)
+  .then((response) => response.text())
+  .then((result) => console.log(result))
+  .catch((error) => console.error(error));
         }
         
-        function auth(){
-            fetch(`${baseUrl}/api/v1/Autenticacao`, 
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json', 
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ usuario: user, chaveAcesso: password })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro na requisição: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log(data);
-                // Aqui você pode armazenar o token, se necessário
-                token = data.token; // Por exemplo, se a API retornar um token
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-            });
-        }
+        
     </script>
     <style>
         body {

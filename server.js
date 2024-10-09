@@ -33,6 +33,40 @@ app.post('/auth', async (req, res) => {
     }
 });
 
+app.get('/ativoId', async (req, res) => {
+    const { baseUrl, token, idAtivo } = req.query;
+
+    const apiUrl = `${baseUrl}/api/v1/Ativo/${idAtivo}/modulos/lookups?tipoModulo=Supervisao`;
+    const headers = {
+        'Accept': 'application/json',
+        'Accept-Language': 'pt-BR',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+    };
+
+    // Imprime os headers para ver se o Authorization está lá
+    console.log("Cabeçalhos:", headers);
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: headers,
+        });
+
+        console.log("Status da resposta:", response.status);
+
+        if (!response.ok) {
+            throw new Error(`Erro na requisição: ${response.status}`);
+        }
+
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error("Erro ao fazer a requisição para a API final:", error);
+        res.status(500).json({ message: 'Erro na requisição', error: error.message });
+    }
+});
+
 app.use(express.static('../'));
 
 app.listen(port, () => {

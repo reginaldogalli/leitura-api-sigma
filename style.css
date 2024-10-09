@@ -1,6 +1,6 @@
 body {
-    height: 100vh;
-    width: 100vw;
+    height: 98vh;
+    width: 99vw;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -45,11 +45,22 @@ label {
     padding: 5px;
 }
 
-#auth-button {
+#auth-button, #search-button {
     color: white;
     background-color: green;
     height: 30px;
     margin: 10px;
     border-radius: 5px;
     cursor: pointer;
+}
+
+footer {
+    width: 100vw;
+    height: 30px;
+    background-color: gray;
+    color: azure;
+    position: absolute;
+    bottom: 0;
+    text-align: center;
+    padding: 10px 0 0 0;
 }

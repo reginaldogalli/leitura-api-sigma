@@ -3,7 +3,8 @@
 		"_postman_id": "bd90d557-489d-47f9-98a0-0ac9b9d89408",
 		"name": "Imprime JSON Total Ativo",
 		"description": "Esta collection tem o objetivo de obter um JSON com todos os valores das telas Geral e Parâmetros de todos os IEDs presentes em um ativo no Sigma ECM.\n\nPara utilizá-la, é necessário ter o `Ambiente-ECM` definido como ambiente da collection.\n\nDentro do `Ambiente-ECM` parametrize as variáveis `user` e `password` com os dados de um usuário que possua acesso ao sistema.\n\nSe necessário, altere o valor da variável `baseUrl`.\n\nAinda dentro do `Ambiente-ECM` atribua um valor para a variável`ativoId`.\n\nEnvie a requisição e aguarde o término da execução. Verifique o console para obter o JSON com as leituras de todos os sensores instalados no ativo.\n\nPara formatar o JSON como CSV, em formato de tabela, copie e cole a saída do console na ferramenta online:\n\n[https://data.page/json/csv](https://data.page/json/csv)",
-		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26169907"
 	},
 	"item": [
 		{
@@ -12,7 +13,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "045d0f54-16c8-4e5b-9fef-010fcc99a2ce",
 						"exec": [
 							"let modulosAtivo = null;\r",
 							"let modulosOrganizadosAtivo = null;\r",
@@ -119,7 +119,6 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "864a4bb8-f43a-484b-8bcd-6fddb4f76297",
 						"exec": [
 							"pm.environment.set('tokenAcesso', null);"
 						],
@@ -128,10 +127,6 @@
 					}
 				}
 			],
-			"id": "d127d173-bc55-4b98-9214-ede1a3aa7ded",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
 			"request": {
 				"method": "POST",
 				"header": [
@@ -150,7 +145,17 @@
 						}
 					}
 				},
-				"url": "{{baseUrl}}/api/v1/Autenticacao",
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/Autenticacao",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"Autenticacao"
+					]
+				},
 				"description": "Esta request faz a autenticação na API e no Post Response Script faz várias outras requsições para obter os valores do ativo."
 			},
 			"response": []
@@ -160,7 +165,6 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "ea961faa-c9dd-467a-8a2f-deeba6e815ad",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
@@ -171,7 +175,6 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "ac4d0b5b-c553-4484-be58-1319caa44fee",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [

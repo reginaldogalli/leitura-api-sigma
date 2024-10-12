@@ -1,0 +1,335 @@
+{
+	"info": {
+		"_postman_id": "fb11682b-f2a8-41c9-a735-d704f5e2c184",
+		"name": "Ocultar Itens",
+		"description": "Esta collection tem o objetivo de automatizar o processo de ocultar variáveis no Sigma ECM.\n\nPara utilizá-la, é necessário ter o `Ambiente-ECM` definido como ambiente da collection.\n\nDentro do `Ambiente-ECM` parametrize as variáveis `user` e `password` com os dados de um usuário que possua acesso ao sistema.\n\nSe necessário, altere o valor da variável `baseUrl`.\n\nAinda dentro do `Ambiente-ECM` atribua um valor para as variáveis `keyWord` e `moduloAtivoId`. Para `keyword` insira um texto referente ao termo que deseja utilizar para ocultar as variáveis. Exemplo: Conjunto 2.\n\nPara `moduloAtivoId` digite o Id do módulo que deseja ocular as variáveis. Esse Id pode ser obtido no final da url, na página do próprio módulo, no Sigma ECM.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26169907"
+	},
+	"item": [
+		{
+			"name": "Obtem Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code == 200){\r",
+							"    let jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"    pm.environment.set('tokenAcesso', jsonData.dadosAutenticacao.tokenAcesso);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"usuario\": \"{{user}}\",\r\n    \"chaveAcesso\": \"{{password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/Autenticacao",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"Autenticacao"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Ocultar Grupos Geral",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code == 200){\r",
+							"    let jsonData = JSON.parse(responseBody);\r",
+							"    pm.environment.set('responseGeral', jsonData);\r",
+							"}\r",
+							"\r",
+							"const filteredData = pm.environment.get(\"responseGeral\").flatMap(item => {\r",
+							"    const filteredCampos = item.campos.filter(campo => campo.nome.includes(pm.environment.get(\"keyword\")));\r",
+							"    return filteredCampos.length > 0 ? filteredCampos : [];\r",
+							"});\r",
+							"pm.environment.set(\"keyWordItems\", JSON.stringify(filteredData, null, 2));\r",
+							"let keyWordItems = JSON.parse(pm.environment.get(\"keyWordItems\")); \r",
+							"\r",
+							"const headers = {\r",
+							"    'Accept': 'application/json, text/plain, */*',\r",
+							"    'Accept-Encoding': 'gzip, deflate, br',\r",
+							"    'Accept-Language': 'pt-BR',\r",
+							"    'Authorization': `Bearer ${pm.environment.get(\"tokenAcesso\")}`,\r",
+							"    'Content-Type': 'application/json'\r",
+							"};\r",
+							"\r",
+							"for (const item of [...keyWordItems]) {  \r",
+							"    let itemAtual = item;\r",
+							"    pm.environment.set(\"itemAtual\", JSON.stringify(itemAtual));\r",
+							"    pm.environment.set(\"campoModuloAtivoId\", itemAtual.id);\r",
+							"    const url = `${pm.environment.get(\"baseUrl\")}/api/v1/supervisao/campo/${itemAtual.id}/ocultar`;\r",
+							"    pm.sendRequest({\r",
+							"        url: url,\r",
+							"        method: 'PUT',\r",
+							"        header: headers,\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"const tempVariables = ['responseGeral', 'keyWordItems',  'campoModuloAtivoId', 'itemAtual'];\r",
+							"tempVariables.map(item => {\r",
+							"    pm.environment.set(item, null);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenAcesso}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "ptBR",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "*/*",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "text/plain",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Encoding",
+						"value": "br",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjBmZmQyMDY5LTJkN2ItNGQxMi1iOTBlLTA4ZGE5MWM5NGQzNyIsInJvbGUiOlsiUEVSMDAyIiwiUEVSMDA5IiwiUEVSMDIwIiwiUEVSMDE5IiwiUEVSMDI5IiwiUEVSMDA0IiwiUEVSMDA1IiwiUEVSMDExIiwiUEVSMDI4IiwiUEVSMDEwIiwiUEVSMDE0IiwiUEVSMDMwIiwiUEVSMDE1IiwiUEVSMDE2IiwiUEVSMDEzIiwiUEVSMDE3IiwiUEVSMDIzIiwiUEVSMDI0IiwiUEVSMDI1IiwiUEVSMDE4IiwiUEVSMDI2IiwiUEVSMDI3IiwiUEVSMDIyIiwiUEVSMDAzIiwiUEVSMDA3IiwiUEVSMDAxIiwiUEVSMDA4IiwiQWRtaW5pc3RyYWRvciJdLCJzdWIiOiIwZmZkMjA2OS0yZDdiLTRkMTItYjkwZS0wOGRhOTFjOTRkMzciLCJqdGkiOiIxOTM3MTFjZi1jYTcxLTQ4ZjYtOGNmOC1hOGYzYjI3NDJkZGEiLCJnaXZlbl9uYW1lIjpbIlJlZ2luYWxkbyIsIlJlZ2luYWxkbyJdLCJlbWFpbCI6InJlZ2luYWxkby5zYW50b3NAdHJlZXRlY2guY29tLmJyIiwibmFtZWlkIjoiMGZmZDIwNjktMmQ3Yi00ZDEyLWI5MGUtMDhkYTkxYzk0ZDM3IiwiVXN1YXJpb0F1dG9yaXphZG8iOiJVc3VhcmlvQXV0b3JpemFkbyIsIm5iZiI6MTcyMzQ4NTEyMSwiZXhwIjoxNzIzNDg2MDIxLCJpYXQiOjE3MjM0ODUxMjEsImlzcyI6IlRyZWV0ZWNoIFNpc3RlbWFzIERpZ2l0YWlzIExUREEiLCJhdWQiOiJTaWdtYTRXZWIifQ.T9hQQbDoBpt_HIGmTghy_lBWzvWu7AZZadxc8jmezgo",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/supervisao/{{moduloAtivoId}}/grupos/geral",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"supervisao",
+						"{{moduloAtivoId}}",
+						"grupos",
+						"geral"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Ocultar Grupos Parâmetros",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code == 200){\r",
+							"    let jsonData = JSON.parse(responseBody);\r",
+							"    pm.environment.set('responseGeral', jsonData);\r",
+							"}\r",
+							"\r",
+							"const filteredData = pm.environment.get(\"responseGeral\").flatMap(item => {\r",
+							"    const filteredCampos = item.campos.filter(campo => campo.nome.includes(pm.environment.get(\"keyword\")));\r",
+							"    return filteredCampos.length > 0 ? filteredCampos : [];\r",
+							"});\r",
+							"pm.environment.set(\"keyWordItems\", JSON.stringify(filteredData, null, 2));\r",
+							"let keyWordItems = JSON.parse(pm.environment.get(\"keyWordItems\")); \r",
+							"\r",
+							"const headers = {\r",
+							"    'Accept': 'application/json, text/plain, */*',\r",
+							"    'Accept-Encoding': 'gzip, deflate, br',\r",
+							"    'Accept-Language': 'pt-BR',\r",
+							"    'Authorization': `Bearer ${pm.environment.get(\"tokenAcesso\")}`,\r",
+							"    'Content-Type': 'application/json'\r",
+							"};\r",
+							"\r",
+							"for (const item of [...keyWordItems]) {  \r",
+							"    let itemAtual = item;\r",
+							"    pm.environment.set(\"itemAtual\", JSON.stringify(itemAtual));\r",
+							"    pm.environment.set(\"campoModuloAtivoId\", itemAtual.id);\r",
+							"    const url = `${pm.environment.get(\"baseUrl\")}/api/v1/supervisao/campo/${itemAtual.id}/ocultar`;\r",
+							"    pm.sendRequest({\r",
+							"        url: url,\r",
+							"        method: 'PUT',\r",
+							"        header: headers,\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"const tempVariables = ['responseGeral', 'keyWordItems',  'campoModuloAtivoId', 'itemAtual'];\r",
+							"tempVariables.map(item => {\r",
+							"    pm.environment.set(item, null);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenAcesso}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "ptBR",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "*/*",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "text/plain",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Encoding",
+						"value": "br",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjBmZmQyMDY5LTJkN2ItNGQxMi1iOTBlLTA4ZGE5MWM5NGQzNyIsInJvbGUiOlsiUEVSMDAyIiwiUEVSMDA5IiwiUEVSMDIwIiwiUEVSMDE5IiwiUEVSMDI5IiwiUEVSMDA0IiwiUEVSMDA1IiwiUEVSMDExIiwiUEVSMDI4IiwiUEVSMDEwIiwiUEVSMDE0IiwiUEVSMDMwIiwiUEVSMDE1IiwiUEVSMDE2IiwiUEVSMDEzIiwiUEVSMDE3IiwiUEVSMDIzIiwiUEVSMDI0IiwiUEVSMDI1IiwiUEVSMDE4IiwiUEVSMDI2IiwiUEVSMDI3IiwiUEVSMDIyIiwiUEVSMDAzIiwiUEVSMDA3IiwiUEVSMDAxIiwiUEVSMDA4IiwiQWRtaW5pc3RyYWRvciJdLCJzdWIiOiIwZmZkMjA2OS0yZDdiLTRkMTItYjkwZS0wOGRhOTFjOTRkMzciLCJqdGkiOiIxOTM3MTFjZi1jYTcxLTQ4ZjYtOGNmOC1hOGYzYjI3NDJkZGEiLCJnaXZlbl9uYW1lIjpbIlJlZ2luYWxkbyIsIlJlZ2luYWxkbyJdLCJlbWFpbCI6InJlZ2luYWxkby5zYW50b3NAdHJlZXRlY2guY29tLmJyIiwibmFtZWlkIjoiMGZmZDIwNjktMmQ3Yi00ZDEyLWI5MGUtMDhkYTkxYzk0ZDM3IiwiVXN1YXJpb0F1dG9yaXphZG8iOiJVc3VhcmlvQXV0b3JpemFkbyIsIm5iZiI6MTcyMzQ4NTEyMSwiZXhwIjoxNzIzNDg2MDIxLCJpYXQiOjE3MjM0ODUxMjEsImlzcyI6IlRyZWV0ZWNoIFNpc3RlbWFzIERpZ2l0YWlzIExUREEiLCJhdWQiOiJTaWdtYTRXZWIifQ.T9hQQbDoBpt_HIGmTghy_lBWzvWu7AZZadxc8jmezgo",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/supervisao/{{moduloAtivoId}}/grupos/parametro",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"supervisao",
+						"{{moduloAtivoId}}",
+						"grupos",
+						"parametro"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

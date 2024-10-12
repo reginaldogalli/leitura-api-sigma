@@ -1,0 +1,666 @@
+{
+	"info": {
+		"_postman_id": "ad33d41a-b035-4ae9-8067-d5b033f1925b",
+		"name": "Imprimir",
+		"description": "Esta collection tem o objetivo de automatizar o processo de exibir variáveis no Sigma ECM.\n\nPara utilizá-la, é necessário ter o `Ambiente-ECM` definido como ambiente da collection.\n\nDentro do `Ambiente-ECM` parametrize as variáveis `user` e `password` com os dados de um usuário que possua acesso ao sistema.\n\nSe necessário, altere o valor da variável `baseUrl`.\n\nPara `moduloAtivoId` digite o Id do módulo que deseja ocular as variáveis. Esse Id pode ser obtido no final da url, na página do próprio módulo, no Sigma ECM.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26169907"
+	},
+	"item": [
+		{
+			"name": "Obtem Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code == 200){\r",
+							"    let jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"    pm.environment.set('tokenAcesso', jsonData.dadosAutenticacao.tokenAcesso);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"usuario\": \"{{user}}\",\r\n    \"chaveAcesso\": \"{{password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/Autenticacao",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"Autenticacao"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Imprimir CSV Geral",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {\r",
+							"    let jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"    pm.environment.set('responseGeral', jsonData);\r",
+							"\r",
+							"    const filteredData = pm.environment.get(\"responseGeral\").flatMap(item => {\r",
+							"        const filteredCampos = item.campos || [];\r",
+							"        return filteredCampos.filter(campo => campo.nome && campo.valor);\r",
+							"    });\r",
+							"\r",
+							"    // Função para converter filteredData em CSV\r",
+							"    function dataToCSV(data) {\r",
+							"        const keys = ['nome', 'valor']; // Define as chaves que você deseja incluir\r",
+							"        const csvRows = [\r",
+							"            keys.join(';'), // Cabeçalho usando ';' como separador\r",
+							"            ...data.map(row => {\r",
+							"                // Concatena \"Indicação de \" ao nome\r",
+							"                const nomeComPrefixo = `Indicação de ${row.nome}`;\r",
+							"                return keys.map(key => {\r",
+							"                    return key === 'nome' ? JSON.stringify(nomeComPrefixo) : JSON.stringify(row[key] || '');\r",
+							"                }).join(';'); // Usando ';' como separador\r",
+							"            })\r",
+							"        ];\r",
+							"        return csvRows.join('\\r\\n');\r",
+							"    }\r",
+							"\r",
+							"    // Converte o filteredData em CSV\r",
+							"    const csvData = dataToCSV(filteredData);\r",
+							"\r",
+							"    // Imprime o CSV no console\r",
+							"    console.log(csvData);\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenAcesso}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "ptBR",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "*/*",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "text/plain",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Encoding",
+						"value": "br",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjBmZmQyMDY5LTJkN2ItNGQxMi1iOTBlLTA4ZGE5MWM5NGQzNyIsInJvbGUiOlsiUEVSMDAyIiwiUEVSMDA5IiwiUEVSMDIwIiwiUEVSMDE5IiwiUEVSMDI5IiwiUEVSMDA0IiwiUEVSMDA1IiwiUEVSMDExIiwiUEVSMDI4IiwiUEVSMDEwIiwiUEVSMDE0IiwiUEVSMDMwIiwiUEVSMDE1IiwiUEVSMDE2IiwiUEVSMDEzIiwiUEVSMDE3IiwiUEVSMDIzIiwiUEVSMDI0IiwiUEVSMDI1IiwiUEVSMDE4IiwiUEVSMDI2IiwiUEVSMDI3IiwiUEVSMDIyIiwiUEVSMDAzIiwiUEVSMDA3IiwiUEVSMDAxIiwiUEVSMDA4IiwiQWRtaW5pc3RyYWRvciJdLCJzdWIiOiIwZmZkMjA2OS0yZDdiLTRkMTItYjkwZS0wOGRhOTFjOTRkMzciLCJqdGkiOiIxOTM3MTFjZi1jYTcxLTQ4ZjYtOGNmOC1hOGYzYjI3NDJkZGEiLCJnaXZlbl9uYW1lIjpbIlJlZ2luYWxkbyIsIlJlZ2luYWxkbyJdLCJlbWFpbCI6InJlZ2luYWxkby5zYW50b3NAdHJlZXRlY2guY29tLmJyIiwibmFtZWlkIjoiMGZmZDIwNjktMmQ3Yi00ZDEyLWI5MGUtMDhkYTkxYzk0ZDM3IiwiVXN1YXJpb0F1dG9yaXphZG8iOiJVc3VhcmlvQXV0b3JpemFkbyIsIm5iZiI6MTcyMzQ4NTEyMSwiZXhwIjoxNzIzNDg2MDIxLCJpYXQiOjE3MjM0ODUxMjEsImlzcyI6IlRyZWV0ZWNoIFNpc3RlbWFzIERpZ2l0YWlzIExUREEiLCJhdWQiOiJTaWdtYTRXZWIifQ.T9hQQbDoBpt_HIGmTghy_lBWzvWu7AZZadxc8jmezgo",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/supervisao/{{moduloAtivoId}}/grupos/geral",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"supervisao",
+						"{{moduloAtivoId}}",
+						"grupos",
+						"geral"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Imprimir CSV Geral Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {\r",
+							"    let jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"    pm.environment.set('responseGeral', jsonData);\r",
+							"\r",
+							"    const filteredData = pm.environment.get(\"responseGeral\").flatMap(item => {\r",
+							"        const filteredCampos = item.campos || [];\r",
+							"        return filteredCampos.filter(campo => campo.nome && campo.valor);\r",
+							"    });\r",
+							"\r",
+							"    // Função para converter filteredData em CSV\r",
+							"    function dataToCSV(data) {\r",
+							"        const keys = ['nome', 'valor']; // Define as chaves que você deseja incluir\r",
+							"        const csvRows = [\r",
+							"            keys.join(';'), // Cabeçalho usando ';' como separador\r",
+							"            ...data.map(row => {\r",
+							"                // Concatena \"Indicação de \" ao nome\r",
+							"                const nomeComPrefixo = `Indicação de ${row.nome}`;\r",
+							"                return keys.map(key => {\r",
+							"                    return key === 'nome' ? JSON.stringify(nomeComPrefixo) : JSON.stringify(row[key] || '');\r",
+							"                }).join(';'); // Usando ';' como separador\r",
+							"            })\r",
+							"        ];\r",
+							"        return csvRows.join('\\r\\n');\r",
+							"    }\r",
+							"\r",
+							"    // Converte o filteredData em CSV\r",
+							"    const csvData = dataToCSV(filteredData);\r",
+							"\r",
+							"    // Imprime o CSV no console\r",
+							"    console.log(csvData);\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenAcesso}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "ptBR",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "*/*",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "text/plain",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Encoding",
+						"value": "br",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjBmZmQyMDY5LTJkN2ItNGQxMi1iOTBlLTA4ZGE5MWM5NGQzNyIsInJvbGUiOlsiUEVSMDAyIiwiUEVSMDA5IiwiUEVSMDIwIiwiUEVSMDE5IiwiUEVSMDI5IiwiUEVSMDA0IiwiUEVSMDA1IiwiUEVSMDExIiwiUEVSMDI4IiwiUEVSMDEwIiwiUEVSMDE0IiwiUEVSMDMwIiwiUEVSMDE1IiwiUEVSMDE2IiwiUEVSMDEzIiwiUEVSMDE3IiwiUEVSMDIzIiwiUEVSMDI0IiwiUEVSMDI1IiwiUEVSMDE4IiwiUEVSMDI2IiwiUEVSMDI3IiwiUEVSMDIyIiwiUEVSMDAzIiwiUEVSMDA3IiwiUEVSMDAxIiwiUEVSMDA4IiwiQWRtaW5pc3RyYWRvciJdLCJzdWIiOiIwZmZkMjA2OS0yZDdiLTRkMTItYjkwZS0wOGRhOTFjOTRkMzciLCJqdGkiOiIxOTM3MTFjZi1jYTcxLTQ4ZjYtOGNmOC1hOGYzYjI3NDJkZGEiLCJnaXZlbl9uYW1lIjpbIlJlZ2luYWxkbyIsIlJlZ2luYWxkbyJdLCJlbWFpbCI6InJlZ2luYWxkby5zYW50b3NAdHJlZXRlY2guY29tLmJyIiwibmFtZWlkIjoiMGZmZDIwNjktMmQ3Yi00ZDEyLWI5MGUtMDhkYTkxYzk0ZDM3IiwiVXN1YXJpb0F1dG9yaXphZG8iOiJVc3VhcmlvQXV0b3JpemFkbyIsIm5iZiI6MTcyMzQ4NTEyMSwiZXhwIjoxNzIzNDg2MDIxLCJpYXQiOjE3MjM0ODUxMjEsImlzcyI6IlRyZWV0ZWNoIFNpc3RlbWFzIERpZ2l0YWlzIExUREEiLCJhdWQiOiJTaWdtYTRXZWIifQ.T9hQQbDoBpt_HIGmTghy_lBWzvWu7AZZadxc8jmezgo",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/Ativo/d5b6a5a5-10a2-417d-82bb-d2887155acac/modulos/lookups?tipoModulo=Supervisao",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"Ativo",
+						"d5b6a5a5-10a2-417d-82bb-d2887155acac",
+						"modulos",
+						"lookups"
+					],
+					"query": [
+						{
+							"key": "tipoModulo",
+							"value": "Supervisao"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Imprimir CSV Parametros",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {\r",
+							"    let jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"    pm.environment.set('responseGeral', jsonData);\r",
+							"\r",
+							"    const filteredData = pm.environment.get(\"responseGeral\").flatMap(item => {\r",
+							"        const filteredCampos = item.campos || [];\r",
+							"        return filteredCampos.filter(campo => campo.nome && campo.valor);\r",
+							"    });\r",
+							"\r",
+							"    // Função para converter filteredData em CSV\r",
+							"    function dataToCSV(data) {\r",
+							"        const keys = ['nome', 'valor']; // Define as chaves que você deseja incluir\r",
+							"        const csvRows = [\r",
+							"            keys.join(';'), // Cabeçalho usando ';' como separador\r",
+							"            ...data.map(row => {\r",
+							"                // Concatena \"Parâmetro de \" ao nome\r",
+							"                const nomeComPrefixo = `Parâmetro de ${row.nome}`;\r",
+							"                return keys.map(key => {\r",
+							"                    return key === 'nome' ? JSON.stringify(nomeComPrefixo) : JSON.stringify(row[key] || '');\r",
+							"                }).join(';'); // Usando ';' como separador\r",
+							"            })\r",
+							"        ];\r",
+							"        return csvRows.join('\\r\\n');\r",
+							"    }\r",
+							"\r",
+							"    // Converte o filteredData em CSV\r",
+							"    const csvData = dataToCSV(filteredData);\r",
+							"\r",
+							"    // Imprime o CSV no console\r",
+							"    console.log(csvData);\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenAcesso}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "ptBR",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "*/*",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "text/plain",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Encoding",
+						"value": "br",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjBmZmQyMDY5LTJkN2ItNGQxMi1iOTBlLTA4ZGE5MWM5NGQzNyIsInJvbGUiOlsiUEVSMDAyIiwiUEVSMDA5IiwiUEVSMDIwIiwiUEVSMDE5IiwiUEVSMDI5IiwiUEVSMDA0IiwiUEVSMDA1IiwiUEVSMDExIiwiUEVSMDI4IiwiUEVSMDEwIiwiUEVSMDE0IiwiUEVSMDMwIiwiUEVSMDE1IiwiUEVSMDE2IiwiUEVSMDEzIiwiUEVSMDE3IiwiUEVSMDIzIiwiUEVSMDI0IiwiUEVSMDI1IiwiUEVSMDE4IiwiUEVSMDI2IiwiUEVSMDI3IiwiUEVSMDIyIiwiUEVSMDAzIiwiUEVSMDA3IiwiUEVSMDAxIiwiUEVSMDA4IiwiQWRtaW5pc3RyYWRvciJdLCJzdWIiOiIwZmZkMjA2OS0yZDdiLTRkMTItYjkwZS0wOGRhOTFjOTRkMzciLCJqdGkiOiIxOTM3MTFjZi1jYTcxLTQ4ZjYtOGNmOC1hOGYzYjI3NDJkZGEiLCJnaXZlbl9uYW1lIjpbIlJlZ2luYWxkbyIsIlJlZ2luYWxkbyJdLCJlbWFpbCI6InJlZ2luYWxkby5zYW50b3NAdHJlZXRlY2guY29tLmJyIiwibmFtZWlkIjoiMGZmZDIwNjktMmQ3Yi00ZDEyLWI5MGUtMDhkYTkxYzk0ZDM3IiwiVXN1YXJpb0F1dG9yaXphZG8iOiJVc3VhcmlvQXV0b3JpemFkbyIsIm5iZiI6MTcyMzQ4NTEyMSwiZXhwIjoxNzIzNDg2MDIxLCJpYXQiOjE3MjM0ODUxMjEsImlzcyI6IlRyZWV0ZWNoIFNpc3RlbWFzIERpZ2l0YWlzIExUREEiLCJhdWQiOiJTaWdtYTRXZWIifQ.T9hQQbDoBpt_HIGmTghy_lBWzvWu7AZZadxc8jmezgo",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/supervisao/{{moduloAtivoId}}/grupos/parametro",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"supervisao",
+						"{{moduloAtivoId}}",
+						"grupos",
+						"parametro"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Imprimir JSON Filtrado Geral",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {\r",
+							"    let jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"    pm.environment.set('responseGeral', jsonData);\r",
+							"\r",
+							"    const filteredData = pm.environment.get(\"responseGeral\").flatMap(item => {\r",
+							"        const filteredCampos = item.campos || [];\r",
+							"        return filteredCampos\r",
+							"            .filter(campo => campo.nome && campo.valor) // Filtra itens com 'nome' e 'valor'\r",
+							"            .map(campo => ({\r",
+							"                nome: `Indicação de ${campo.nome}`, // Concatena \"Indicação de \" ao nome\r",
+							"                valor: campo.valor // Mantém o valor\r",
+							"            }));\r",
+							"    });\r",
+							"\r",
+							"    // Armazena o resultado filtrado de volta no ambiente\r",
+							"    pm.environment.set('filteredData', filteredData);\r",
+							"    \r",
+							"    // Imprime o resultado filtrado no console (opcional)\r",
+							"    console.log(JSON.stringify(filteredData, null, 2));\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenAcesso}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "ptBR",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "*/*",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "text/plain",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Encoding",
+						"value": "br",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjBmZmQyMDY5LTJkN2ItNGQxMi1iOTBlLTA4ZGE5MWM5NGQzNyIsInJvbGUiOlsiUEVSMDAyIiwiUEVSMDA5IiwiUEVSMDIwIiwiUEVSMDE5IiwiUEVSMDI5IiwiUEVSMDA0IiwiUEVSMDA1IiwiUEVSMDExIiwiUEVSMDI4IiwiUEVSMDEwIiwiUEVSMDE0IiwiUEVSMDMwIiwiUEVSMDE1IiwiUEVSMDE2IiwiUEVSMDEzIiwiUEVSMDE3IiwiUEVSMDIzIiwiUEVSMDI0IiwiUEVSMDI1IiwiUEVSMDE4IiwiUEVSMDI2IiwiUEVSMDI3IiwiUEVSMDIyIiwiUEVSMDAzIiwiUEVSMDA3IiwiUEVSMDAxIiwiUEVSMDA4IiwiQWRtaW5pc3RyYWRvciJdLCJzdWIiOiIwZmZkMjA2OS0yZDdiLTRkMTItYjkwZS0wOGRhOTFjOTRkMzciLCJqdGkiOiIxOTM3MTFjZi1jYTcxLTQ4ZjYtOGNmOC1hOGYzYjI3NDJkZGEiLCJnaXZlbl9uYW1lIjpbIlJlZ2luYWxkbyIsIlJlZ2luYWxkbyJdLCJlbWFpbCI6InJlZ2luYWxkby5zYW50b3NAdHJlZXRlY2guY29tLmJyIiwibmFtZWlkIjoiMGZmZDIwNjktMmQ3Yi00ZDEyLWI5MGUtMDhkYTkxYzk0ZDM3IiwiVXN1YXJpb0F1dG9yaXphZG8iOiJVc3VhcmlvQXV0b3JpemFkbyIsIm5iZiI6MTcyMzQ4NTEyMSwiZXhwIjoxNzIzNDg2MDIxLCJpYXQiOjE3MjM0ODUxMjEsImlzcyI6IlRyZWV0ZWNoIFNpc3RlbWFzIERpZ2l0YWlzIExUREEiLCJhdWQiOiJTaWdtYTRXZWIifQ.T9hQQbDoBpt_HIGmTghy_lBWzvWu7AZZadxc8jmezgo",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/supervisao/{{moduloAtivoId}}/grupos/geral",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"supervisao",
+						"{{moduloAtivoId}}",
+						"grupos",
+						"geral"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Imprimir JSON Filtrado Parametros",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {\r",
+							"    let jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"    pm.environment.set('responseGeral', jsonData);\r",
+							"\r",
+							"    const filteredData = pm.environment.get(\"responseGeral\").flatMap(item => {\r",
+							"        const filteredCampos = item.campos || [];\r",
+							"        return filteredCampos\r",
+							"            .filter(campo => campo.nome && campo.valor) // Filtra itens com 'nome' e 'valor'\r",
+							"            .map(campo => ({\r",
+							"                nome: `Parâmetro de ${campo.nome}`, // Concatena \"Parâmetro de \" ao nome\r",
+							"                valor: campo.valor // Mantém o valor\r",
+							"            }));\r",
+							"    });\r",
+							"\r",
+							"    // Armazena o resultado filtrado de volta no ambiente\r",
+							"    pm.environment.set('filteredData', filteredData);\r",
+							"    \r",
+							"    // Imprime o resultado filtrado no console (opcional)\r",
+							"    console.log(JSON.stringify(filteredData, null, 2));\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenAcesso}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "ptBR",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "*/*",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "text/plain",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Encoding",
+						"value": "br",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjBmZmQyMDY5LTJkN2ItNGQxMi1iOTBlLTA4ZGE5MWM5NGQzNyIsInJvbGUiOlsiUEVSMDAyIiwiUEVSMDA5IiwiUEVSMDIwIiwiUEVSMDE5IiwiUEVSMDI5IiwiUEVSMDA0IiwiUEVSMDA1IiwiUEVSMDExIiwiUEVSMDI4IiwiUEVSMDEwIiwiUEVSMDE0IiwiUEVSMDMwIiwiUEVSMDE1IiwiUEVSMDE2IiwiUEVSMDEzIiwiUEVSMDE3IiwiUEVSMDIzIiwiUEVSMDI0IiwiUEVSMDI1IiwiUEVSMDE4IiwiUEVSMDI2IiwiUEVSMDI3IiwiUEVSMDIyIiwiUEVSMDAzIiwiUEVSMDA3IiwiUEVSMDAxIiwiUEVSMDA4IiwiQWRtaW5pc3RyYWRvciJdLCJzdWIiOiIwZmZkMjA2OS0yZDdiLTRkMTItYjkwZS0wOGRhOTFjOTRkMzciLCJqdGkiOiIxOTM3MTFjZi1jYTcxLTQ4ZjYtOGNmOC1hOGYzYjI3NDJkZGEiLCJnaXZlbl9uYW1lIjpbIlJlZ2luYWxkbyIsIlJlZ2luYWxkbyJdLCJlbWFpbCI6InJlZ2luYWxkby5zYW50b3NAdHJlZXRlY2guY29tLmJyIiwibmFtZWlkIjoiMGZmZDIwNjktMmQ3Yi00ZDEyLWI5MGUtMDhkYTkxYzk0ZDM3IiwiVXN1YXJpb0F1dG9yaXphZG8iOiJVc3VhcmlvQXV0b3JpemFkbyIsIm5iZiI6MTcyMzQ4NTEyMSwiZXhwIjoxNzIzNDg2MDIxLCJpYXQiOjE3MjM0ODUxMjEsImlzcyI6IlRyZWV0ZWNoIFNpc3RlbWFzIERpZ2l0YWlzIExUREEiLCJhdWQiOiJTaWdtYTRXZWIifQ.T9hQQbDoBpt_HIGmTghy_lBWzvWu7AZZadxc8jmezgo",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/supervisao/{{moduloAtivoId}}/grupos/parametro",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"supervisao",
+						"{{moduloAtivoId}}",
+						"grupos",
+						"parametro"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,0 +1,206 @@
+{
+	"info": {
+		"_postman_id": "79f04ee1-bc2d-4f0a-a8af-6631801e613f",
+		"name": "Reconhecer Alarmes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26169907"
+	},
+	"item": [
+		{
+			"name": "Obtem Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code == 200){\r",
+							"    let jsonData = JSON.parse(responseBody);\r",
+							"    pm.environment.set('tokenAcesso', jsonData.dadosAutenticacao.tokenAcesso);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"usuario\": \"{{user}}\",\r\n    \"chaveAcesso\": \"{{password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/Autenticacao",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"Autenticacao"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reconhecer Alarmes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// let listaAlarmes = JSON.parse(pm.collectionVariables.get('listaAlarmes'));\r",
+							"\r",
+							"// const headers = {\r",
+							"//     'Accept': 'application/json, text/plain, */*',\r",
+							"//     'Accept-Encoding': 'gzip, deflate, br',\r",
+							"//     'Accept-Language': 'pt-BR',\r",
+							"//     'Authorization': `Bearer ${pm.environment.get(\"tokenAcesso\")}`,\r",
+							"//     'Content-Type': 'application/json'\r",
+							"// };\r",
+							"\r",
+							"// const request = {\r",
+							"//     \"comentario\": \"postman\",\r",
+							"//     \"ignorar\": false\r",
+							"// };\r",
+							"\r",
+							"// for (const item of [...listaAlarmes]) {  \r",
+							"//     let itemListaAlarme = item.id;\r",
+							"//     pm.collectionVariables.set(\"idAlarme\", \"itemListaAlarme\");\r",
+							"//     pm.collectionVariables.set(\"listaAlarmes\", \"listaAlarmes\");\r",
+							"//     const url = `${pm.environment.get(\"baseUrl\")}/api/v1.0/alarme/${itemListaAlarme}/ocultar`;\r",
+							"//     pm.sendRequest({\r",
+							"//         url: url,\r",
+							"//         method: 'PUT',\r",
+							"//         header: headers,\r",
+							"//         body: request\r",
+							"//     });\r",
+							"// }"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"let listaAlarmes = JSON.parse(pm.collectionVariables.get('listaAlarmes'));\r",
+							"let itemListaAlarme = listaAlarmes.shift();\r",
+							"let idAlarme = itemListaAlarme.id;\r",
+							"pm.collectionVariables.set(\"idAlarme\", idAlarme);\r",
+							"pm.collectionVariables.set(\"listaAlarmes\", JSON.stringify(listaAlarmes));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenAcesso}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "pt-BR",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "*/*",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "text/plain",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjBmZmQyMDY5LTJkN2ItNGQxMi1iOTBlLTA4ZGE5MWM5NGQzNyIsInJvbGUiOlsiUEVSMDAyIiwiUEVSMDA5IiwiUEVSMDIwIiwiUEVSMDE5IiwiUEVSMDI5IiwiUEVSMDA0IiwiUEVSMDA1IiwiUEVSMDExIiwiUEVSMDI4IiwiUEVSMDEwIiwiUEVSMDE0IiwiUEVSMDMwIiwiUEVSMDE1IiwiUEVSMDE2IiwiUEVSMDEzIiwiUEVSMDE3IiwiUEVSMDIzIiwiUEVSMDI0IiwiUEVSMDI1IiwiUEVSMDE4IiwiUEVSMDI2IiwiUEVSMDI3IiwiUEVSMDIyIiwiUEVSMDAzIiwiUEVSMDA3IiwiUEVSMDAxIiwiUEVSMDA4IiwiQWRtaW5pc3RyYWRvciJdLCJzdWIiOiIwZmZkMjA2OS0yZDdiLTRkMTItYjkwZS0wOGRhOTFjOTRkMzciLCJqdGkiOiIxOTM3MTFjZi1jYTcxLTQ4ZjYtOGNmOC1hOGYzYjI3NDJkZGEiLCJnaXZlbl9uYW1lIjpbIlJlZ2luYWxkbyIsIlJlZ2luYWxkbyJdLCJlbWFpbCI6InJlZ2luYWxkby5zYW50b3NAdHJlZXRlY2guY29tLmJyIiwibmFtZWlkIjoiMGZmZDIwNjktMmQ3Yi00ZDEyLWI5MGUtMDhkYTkxYzk0ZDM3IiwiVXN1YXJpb0F1dG9yaXphZG8iOiJVc3VhcmlvQXV0b3JpemFkbyIsIm5iZiI6MTcyMzQ4NTEyMSwiZXhwIjoxNzIzNDg2MDIxLCJpYXQiOjE3MjM0ODUxMjEsImlzcyI6IlRyZWV0ZWNoIFNpc3RlbWFzIERpZ2l0YWlzIExUREEiLCJhdWQiOiJTaWdtYTRXZWIifQ.T9hQQbDoBpt_HIGmTghy_lBWzvWu7AZZadxc8jmezgo",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"comentario\": \"postman\",\r\n    \"ignorar\": false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1.0/alarme/{{idAlarme}}/reconhecer",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1.0",
+						"alarme",
+						"{{idAlarme}}",
+						"reconhecer"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "listaAlarmes",
+			"value": ""
+		},
+		{
+			"key": "idAlarme",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

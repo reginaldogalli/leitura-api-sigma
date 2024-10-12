@@ -1,0 +1,187 @@
+{
+	"info": {
+		"_postman_id": "bd90d557-489d-47f9-98a0-0ac9b9d89408",
+		"name": "Imprime JSON Total Ativo",
+		"description": "Esta collection tem o objetivo de obter um JSON com todos os valores das telas Geral e Parâmetros de todos os IEDs presentes em um ativo no Sigma ECM.\n\nPara utilizá-la, é necessário ter o `Ambiente-ECM` definido como ambiente da collection.\n\nDentro do `Ambiente-ECM` parametrize as variáveis `user` e `password` com os dados de um usuário que possua acesso ao sistema.\n\nSe necessário, altere o valor da variável `baseUrl`.\n\nAinda dentro do `Ambiente-ECM` atribua um valor para a variável`ativoId`.\n\nEnvie a requisição e aguarde o término da execução. Verifique o console para obter o JSON com as leituras de todos os sensores instalados no ativo.\n\nPara formatar o JSON como CSV, em formato de tabela, copie e cole a saída do console na ferramenta online:\n\n[https://data.page/json/csv](https://data.page/json/csv)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Imprime JSON Total Ativo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "045d0f54-16c8-4e5b-9fef-010fcc99a2ce",
+						"exec": [
+							"let modulosAtivo = null;\r",
+							"let modulosOrganizadosAtivo = null;\r",
+							"let moduloAtual = null;\r",
+							"let jsonTotal = [];\r",
+							"\r",
+							"async function executar() {\r",
+							"    if (pm.response.code === 200) {\r",
+							"        const jsonData = pm.response.json();\r",
+							"        pm.environment.set('tokenAcesso', jsonData.dadosAutenticacao.tokenAcesso); \r",
+							"        await buscaModulosAtivo();\r",
+							"        await organizaModulosAtivo();\r",
+							"        await percorreModulosAtivo();\r",
+							"        console.log(JSON.stringify(jsonTotal));\r",
+							"    } else {\r",
+							"        console.log(pm.response.code); \r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"executar();\r",
+							"\r",
+							"async function buscaModulosAtivo() {\r",
+							"    try {\r",
+							"        const response = await pm.sendRequest({\r",
+							"            url: `${pm.environment.get(\"baseUrl\")}/api/v1/Ativo/${pm.environment.get(\"ativoId\")}/modulos/lookups?tipoModulo=Supervisao`,\r",
+							"            method: \"GET\",\r",
+							"            header: {\r",
+							"                'Accept': 'application/json',\r",
+							"                'Accept-Language': 'pt-BR',\r",
+							"                'Content-Type': 'application/json',\r",
+							"                'Authorization': `Bearer ${pm.environment.get(\"tokenAcesso\")}`\r",
+							"            }\r",
+							"        });\r",
+							"        const jsonData = response.json();\r",
+							"        modulosAtivo = jsonData;\r",
+							"    } catch (err) {\r",
+							"        console.error('Erro na requisição:', err);\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"async function organizaModulosAtivo() {\r",
+							"    const jsonData = modulosAtivo;\r",
+							"    let modulosOrganizados = [];\r",
+							"    for (const objeto of jsonData) {  \r",
+							"        let nomeCurto = objeto.nome.split(' - ')[0];\r",
+							"        let novoObjeto = {\r",
+							"            nomeCurto: nomeCurto,\r",
+							"            moduloAtivoId: objeto.moduloAtivoId\r",
+							"        };\r",
+							"        modulosOrganizados.push(novoObjeto);\r",
+							"    }\r",
+							"    modulosOrganizadosAtivo = modulosOrganizados;\r",
+							"}\r",
+							"\r",
+							"async function percorreModulosAtivo(){\r",
+							"    for (modulo in modulosOrganizadosAtivo){\r",
+							"        moduloAtual = modulosOrganizadosAtivo[modulo].nomeCurto;\r",
+							"        await leModulosAtivo(modulosOrganizadosAtivo[modulo].moduloAtivoId);\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"async function leModulosAtivo(idModuloAtual) {\r",
+							"    const telas = ['geral', 'parametro'];\r",
+							"    try {\r",
+							"        for (i in telas){\r",
+							"            const response = await pm.sendRequest({\r",
+							"                url: `${pm.environment.get(\"baseUrl\")}/api/v1/supervisao/${idModuloAtual}/grupos/${telas[i]}`,\r",
+							"                method: \"GET\",\r",
+							"                header: {\r",
+							"                    'Accept': 'application/json',\r",
+							"                    'Accept-Language': 'pt-BR',\r",
+							"                    'Content-Type': 'application/json',\r",
+							"                    'Authorization': `Bearer ${pm.environment.get(\"tokenAcesso\")}`\r",
+							"                }\r",
+							"            });\r",
+							"            const dataHoraAtual = new Date().toISOString();\r",
+							"            const prefixo = telas[i] === 'geral' ? 'Indicação de ' : 'Parâmetro de ';\r",
+							"            const jsonData = response.json();\r",
+							"            const modulosAtuais = jsonData.flatMap(item => \r",
+							"                (item.campos || [])\r",
+							"                .filter(campo => campo.status === \"Ativo\")\r",
+							"                .map(campo => {\r",
+							"                    let nomeCampo;\r",
+							"                    if (`${moduloAtual}` == \"TM2\") {\r",
+							"                        nomeCampo = campo.nome.replace('TM2 : ', 'TM2: ' + prefixo);\r",
+							"                    } else {\r",
+							"                        nomeCampo = prefixo + campo.nome;\r",
+							"                    }\r",
+							"                    return {\r",
+							"                        ied: `${moduloAtual}`,\r",
+							"                        nome: nomeCampo,\r",
+							"                        valor: campo.valor,\r",
+							"                        dataHora: dataHoraAtual,\r",
+							"                    };\r",
+							"                })\r",
+							"            );\r",
+							"            jsonTotal.push(...modulosAtuais);\r",
+							"        };\r",
+							"    } catch (error) {\r",
+							"        console.error(\"Ocorreu um erro ao carregar os módulos ativos:\", error);\r",
+							"    }\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "864a4bb8-f43a-484b-8bcd-6fddb4f76297",
+						"exec": [
+							"pm.environment.set('tokenAcesso', null);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"id": "d127d173-bc55-4b98-9214-ede1a3aa7ded",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"usuario\": \"{{user}}\",\r\n    \"chaveAcesso\": \"{{password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{baseUrl}}/api/v1/Autenticacao",
+				"description": "Esta request faz a autenticação na API e no Post Response Script faz várias outras requsições para obter os valores do ativo."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "ea961faa-c9dd-467a-8a2f-deeba6e815ad",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "ac4d0b5b-c553-4484-be58-1319caa44fee",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

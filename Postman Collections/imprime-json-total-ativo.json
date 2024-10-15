@@ -93,7 +93,7 @@
 							"                .map(campo => {\r",
 							"                    let nomeCampo;\r",
 							"                    if (`${moduloAtual}` == \"TM2\") {\r",
-							"                        nomeCampo = campo.nome.replace('TM2 : ', 'TM2: ' + prefixo);\r",
+							"                        nomeCampo = campo.nome.replace('TM2 : ', 'TM2 : ' + prefixo);\r",
 							"                    } else {\r",
 							"                        nomeCampo = prefixo + campo.nome;\r",
 							"                    }\r",

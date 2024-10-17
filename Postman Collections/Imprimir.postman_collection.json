@@ -2,11 +2,184 @@
 	"info": {
 		"_postman_id": "ad33d41a-b035-4ae9-8067-d5b033f1925b",
 		"name": "Imprimir",
-		"description": "Esta collection tem o objetivo de automatizar o processo de exibir variáveis no Sigma ECM.\n\nPara utilizá-la, é necessário ter o `Ambiente-ECM` definido como ambiente da collection.\n\nDentro do `Ambiente-ECM` parametrize as variáveis `user` e `password` com os dados de um usuário que possua acesso ao sistema.\n\nSe necessário, altere o valor da variável `baseUrl`.\n\nPara `moduloAtivoId` digite o Id do módulo que deseja ocular as variáveis. Esse Id pode ser obtido no final da url, na página do próprio módulo, no Sigma ECM.",
+		"description": "Esta collection tem o objetivo de automatizar o processo de exibir variáveis no Sigma ECM.\n\nPara utilizá-la, é necessário ter o `Ambiente-ECM` definido como ambiente da collection.\n\nDentro do `Ambiente-ECM` parametrize as variáveis `user` e `password` com os dados de um usuário que possua acesso ao sistema.\n\nSe necessário, altere o valor da variável `baseUrl`.\n\nPara `moduloAtivoId` digite o Id do módulo que deseja ocular as variáveis. Esse Id pode ser obtido no final da url, na página do próprio módulo, no Sigma ECM.\n\nEnvie a requisição e aguarde o término da execução. Em seguida clique na aba Visualize do painel de resposta para visualizar uma tabela com todos os valores obtidos.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "26169907"
 	},
 	"item": [
+		{
+			"name": "Imprime JSON Total IED",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let modulosAtivo = null;\r",
+							"let modulosOrganizadosAtivo = null;\r",
+							"let moduloAtual = null;\r",
+							"let jsonTotal = [];\r",
+							"\r",
+							"if (pm.response.code === 200) {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.environment.set('tokenAcesso', jsonData.dadosAutenticacao.tokenAcesso); \r",
+							"    await leModuloAtivo(pm.environment.get('moduloAtivoId'));\r",
+							"    console.log(JSON.stringify(jsonTotal)); // Log para debug\r",
+							"} else {\r",
+							"    console.log(pm.response.code); \r",
+							"}\r",
+							"\r",
+							"async function leModuloAtivo(idModuloAtual) {\r",
+							"    const telas = ['geral', 'parametro'];\r",
+							"    try {\r",
+							"        for (i in telas){\r",
+							"            const response = await pm.sendRequest({\r",
+							"                url: `${pm.environment.get(\"baseUrl\")}/api/v1/supervisao/${idModuloAtual}/grupos/${telas[i]}`,\r",
+							"                method: \"GET\",\r",
+							"                header: {\r",
+							"                    'Accept': 'application/json',\r",
+							"                    'Accept-Language': 'pt-BR',\r",
+							"                    'Content-Type': 'application/json',\r",
+							"                    'Authorization': `Bearer ${pm.environment.get(\"tokenAcesso\")}`\r",
+							"                }\r",
+							"            });\r",
+							"            const dataHoraAtual = new Date().toISOString();\r",
+							"            const prefixo = telas[i] === 'geral' ? 'Indicação de ' : 'Parâmetro de ';\r",
+							"            const jsonData = response.json();\r",
+							"            const modulosAtuais = jsonData.flatMap(item => \r",
+							"                (item.campos || [])\r",
+							"                .filter(campo => campo.status === \"Ativo\")\r",
+							"                .map(campo => {\r",
+							"                    let nomeCampo;\r",
+							"                    if (`${moduloAtual}` == \"TM2\") {\r",
+							"                        nomeCampo = campo.nome.replace('TM2 : ', 'TM2 : ' + prefixo);\r",
+							"                    } else {\r",
+							"                        nomeCampo = prefixo + campo.nome;\r",
+							"                    }\r",
+							"                    return {\r",
+							"                        dataHora: dataHoraAtual,\r",
+							"                        nome: nomeCampo,\r",
+							"                        valor: campo.valor,\r",
+							"                    };\r",
+							"                })\r",
+							"            );\r",
+							"            jsonTotal.push(...modulosAtuais);\r",
+							"        };\r",
+							"    } catch (error) {\r",
+							"        console.error(\"Ocorreu um erro ao carregar os módulos ativos:\", error);\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"var template = `\r",
+							"<style type=\"text/css\">\r",
+							"    .tftable {\r",
+							"        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fonte mais bonita */\r",
+							"        font-size: 14px;\r",
+							"        color: #333333;\r",
+							"        width: 100%;\r",
+							"        border-width: 1px;\r",
+							"        border-color: #FFFFFF; /* Branco */\r",
+							"        border-collapse: collapse;\r",
+							"    }\r",
+							"    .tftable th {\r",
+							"        font-size: 16px;\r",
+							"        background-color: #FFA500; /* Laranja */\r",
+							"        color: #FFFFFF;\r",
+							"        border-width: 1px;\r",
+							"        padding: 8px;\r",
+							"        border-style: solid;\r",
+							"        border-color: #FFFFFF;\r",
+							"        text-align: left;\r",
+							"    }\r",
+							"    .tftable tr:nth-child(odd) {\r",
+							"        background-color: #d9d9d9; /* Cinza Claro para linhas ímpares */\r",
+							"    }\r",
+							"    .tftable tr:nth-child(even) {\r",
+							"        background-color: #bfbfbf; /* Cinza Médio para linhas pares */\r",
+							"    }\r",
+							"    .tftable td {\r",
+							"        font-size: 14px;\r",
+							"        border-width: 1px;\r",
+							"        padding: 8px;\r",
+							"        border-style: solid;\r",
+							"        border-color: #FFFFFF; /* Branco */\r",
+							"    }\r",
+							"    .tftable tr:hover {\r",
+							"        background-color: #FFD580; /* Laranja Claro para o hover */\r",
+							"    }\r",
+							"</style>\r",
+							"\r",
+							"<table class=\"tftable\" border=\"1\">\r",
+							"    <tr>\r",
+							"        <th>Data/Hora</th>\r",
+							"        <th>Variável</th>\r",
+							"        <th>Valor</th>\r",
+							"    </tr>\r",
+							"    {{#each jsonTotal}}\r",
+							"    <tr>\r",
+							"        <td>{{this.dataHora}}</td>\r",
+							"        <td>{{this.nome}}</td>\r",
+							"        <td>{{this.valor}}</td>\r",
+							"    </tr>\r",
+							"    {{/each}}\r",
+							"</table>\r",
+							"`;\r",
+							"\r",
+							"function constructVisualizerPayload() {\r",
+							"    return {\r",
+							"        jsonTotal: jsonTotal // Envia o jsonTotal para o template\r",
+							"    };\r",
+							"}\r",
+							"\r",
+							"pm.visualizer.set(template, constructVisualizerPayload());"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set('tokenAcesso', null);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"usuario\": \"{{user}}\",\r\n    \"chaveAcesso\": \"{{password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/Autenticacao",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"Autenticacao"
+					]
+				},
+				"description": "Esta request faz a autenticação na API e no Post Response Script faz várias outras requsições para obter os valores do ativo."
+			},
+			"response": []
+		},
 		{
 			"name": "Obtem Token",
 			"event": [
@@ -172,133 +345,6 @@
 						"{{moduloAtivoId}}",
 						"grupos",
 						"geral"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Imprimir CSV Geral Copy",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"if (pm.response.code === 200) {\r",
-							"    let jsonData = JSON.parse(responseBody);\r",
-							"\r",
-							"    pm.environment.set('responseGeral', jsonData);\r",
-							"\r",
-							"    const filteredData = pm.environment.get(\"responseGeral\").flatMap(item => {\r",
-							"        const filteredCampos = item.campos || [];\r",
-							"        return filteredCampos.filter(campo => campo.nome && campo.valor);\r",
-							"    });\r",
-							"\r",
-							"    // Função para converter filteredData em CSV\r",
-							"    function dataToCSV(data) {\r",
-							"        const keys = ['nome', 'valor']; // Define as chaves que você deseja incluir\r",
-							"        const csvRows = [\r",
-							"            keys.join(';'), // Cabeçalho usando ';' como separador\r",
-							"            ...data.map(row => {\r",
-							"                // Concatena \"Indicação de \" ao nome\r",
-							"                const nomeComPrefixo = `Indicação de ${row.nome}`;\r",
-							"                return keys.map(key => {\r",
-							"                    return key === 'nome' ? JSON.stringify(nomeComPrefixo) : JSON.stringify(row[key] || '');\r",
-							"                }).join(';'); // Usando ';' como separador\r",
-							"            })\r",
-							"        ];\r",
-							"        return csvRows.join('\\r\\n');\r",
-							"    }\r",
-							"\r",
-							"    // Converte o filteredData em CSV\r",
-							"    const csvData = dataToCSV(filteredData);\r",
-							"\r",
-							"    // Imprime o CSV no console\r",
-							"    console.log(csvData);\r",
-							"}\r",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{tokenAcesso}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "Accept-Language",
-						"value": "ptBR",
-						"type": "text"
-					},
-					{
-						"key": "Accept",
-						"value": "*/*",
-						"type": "text"
-					},
-					{
-						"key": "Accept",
-						"value": "text/plain",
-						"type": "text"
-					},
-					{
-						"key": "Accept-Encoding",
-						"value": "br",
-						"type": "text",
-						"disabled": true
-					},
-					{
-						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjBmZmQyMDY5LTJkN2ItNGQxMi1iOTBlLTA4ZGE5MWM5NGQzNyIsInJvbGUiOlsiUEVSMDAyIiwiUEVSMDA5IiwiUEVSMDIwIiwiUEVSMDE5IiwiUEVSMDI5IiwiUEVSMDA0IiwiUEVSMDA1IiwiUEVSMDExIiwiUEVSMDI4IiwiUEVSMDEwIiwiUEVSMDE0IiwiUEVSMDMwIiwiUEVSMDE1IiwiUEVSMDE2IiwiUEVSMDEzIiwiUEVSMDE3IiwiUEVSMDIzIiwiUEVSMDI0IiwiUEVSMDI1IiwiUEVSMDE4IiwiUEVSMDI2IiwiUEVSMDI3IiwiUEVSMDIyIiwiUEVSMDAzIiwiUEVSMDA3IiwiUEVSMDAxIiwiUEVSMDA4IiwiQWRtaW5pc3RyYWRvciJdLCJzdWIiOiIwZmZkMjA2OS0yZDdiLTRkMTItYjkwZS0wOGRhOTFjOTRkMzciLCJqdGkiOiIxOTM3MTFjZi1jYTcxLTQ4ZjYtOGNmOC1hOGYzYjI3NDJkZGEiLCJnaXZlbl9uYW1lIjpbIlJlZ2luYWxkbyIsIlJlZ2luYWxkbyJdLCJlbWFpbCI6InJlZ2luYWxkby5zYW50b3NAdHJlZXRlY2guY29tLmJyIiwibmFtZWlkIjoiMGZmZDIwNjktMmQ3Yi00ZDEyLWI5MGUtMDhkYTkxYzk0ZDM3IiwiVXN1YXJpb0F1dG9yaXphZG8iOiJVc3VhcmlvQXV0b3JpemFkbyIsIm5iZiI6MTcyMzQ4NTEyMSwiZXhwIjoxNzIzNDg2MDIxLCJpYXQiOjE3MjM0ODUxMjEsImlzcyI6IlRyZWV0ZWNoIFNpc3RlbWFzIERpZ2l0YWlzIExUREEiLCJhdWQiOiJTaWdtYTRXZWIifQ.T9hQQbDoBpt_HIGmTghy_lBWzvWu7AZZadxc8jmezgo",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "text"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{baseUrl}}/api/v1/Ativo/d5b6a5a5-10a2-417d-82bb-d2887155acac/modulos/lookups?tipoModulo=Supervisao",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"Ativo",
-						"d5b6a5a5-10a2-417d-82bb-d2887155acac",
-						"modulos",
-						"lookups"
-					],
-					"query": [
-						{
-							"key": "tipoModulo",
-							"value": "Supervisao"
-						}
 					]
 				}
 			},

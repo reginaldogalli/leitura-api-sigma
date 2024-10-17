@@ -119,7 +119,7 @@
 							"        color: #333333;\r",
 							"        width: 100%;\r",
 							"        border-width: 1px;\r",
-							"        border-color: #FFFFFF /* Laranja */\r",
+							"        border-color: #FFFFFF; /* Laranja */\r",
 							"        border-collapse: collapse;\r",
 							"    }\r",
 							"    .tftable th {\r",

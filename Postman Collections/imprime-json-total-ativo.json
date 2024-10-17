@@ -130,7 +130,7 @@
 							"        border-width: 1px;\r",
 							"        padding: 8px;\r",
 							"        border-style: solid;\r",
-							"        border-color: #FFA500;\r",
+							"        border-color: #FFFFFF;\r",
 							"        text-align: left;\r",
 							"    }\r",
 							"    .tftable tr:nth-child(odd) {\r",

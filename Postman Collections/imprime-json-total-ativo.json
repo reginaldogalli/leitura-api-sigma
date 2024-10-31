@@ -158,6 +158,7 @@
 							"        <th>Data/Hora</th>\r",
 							"        <th>Variável</th>\r",
 							"        <th>Valor</th>\r",
+							"        <th>Id</th>\r",
 							"    </tr>\r",
 							"    {{#each jsonTotal}}\r",
 							"    <tr>\r",
